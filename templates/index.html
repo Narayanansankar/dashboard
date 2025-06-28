@@ -1,423 +1,326 @@
 <!DOCTYPE html>
-<html lang="en"> <!-- Theme attribute will be set by JS -->
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parking Availability Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-
+    <title>Tiruchendur Parking Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-
-        /* --- THEME DEFINITIONS --- */
         :root {
-            /* Light Theme (Default) */
-            --bg-color: #f4f7f6;
-            --text-color: #212529;
-            --text-secondary-color: #6c757d;
-            --card-bg-color: #ffffff;
-            --card-border-color: #dee2e6;
-            --header-border-color: #dee2e6;
-            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            --thoothukudi-glow: 0 0 15px rgba(29, 233, 182, 0.4);
-            --tirunelveli-glow: 0 0 15px rgba(255, 145, 0, 0.4);
-            --nagercoil-glow: 0 0 15px rgba(30, 136, 229, 0.4);
-            --chart-grid-color: rgba(0, 0, 0, 0.1);
-            --progress-bg: #e9ecef;
-            --modal-bg: #ffffff;
+            --bs-body-bg-light: #f8f9fa;
+            --bs-body-bg-dark: #121212;
+            --card-bg-light: #ffffff;
+            --card-bg-dark: #1e1e1e;
+            --text-color-light: #212529;
+            --text-color-dark: #e0e0e0;
+            --border-color-light: #dee2e6;
+            --border-color-dark: #424242;
         }
-        .card-text {
-            font-size: 0.95rem;
-            color: #455a64; /* Blue Grey 700 */
-        }
-        
-        /* === ADD THIS NEW CSS CLASS === */
-        .occupancy-text {
-            color: #F57C00; /* A strong, readable orange */
-            font-weight: 600; /* Make it a bit bolder */
-        }
-        /* ============================== */
-
-        .status-available {
-            color: #2E7D32; /* Dark Green */
-            font-weight: bold;
-        }
-        [data-bs-theme="dark"] {
-            /* Dark Theme */
-            --bg-color: #121212;
-            --text-color: #e0e0e0;
-            --text-secondary-color: #888;
-            --card-bg-color: rgba(44, 44, 64, 0.45);
-            --card-border-color: rgba(255, 255, 255, 0.125);
-            --header-border-color: #333;
-            --card-shadow: none; /* Shadow is replaced by glow in dark mode */
-            --thoothukudi-glow: 0 0 20px rgba(29, 233, 182, 0.35);
-            --tirunelveli-glow: 0 0 20px rgba(255, 145, 0, 0.35);
-            --nagercoil-glow: 0 0 20px rgba(30, 136, 229, 0.35);
-            --chart-grid-color: rgba(255, 255, 255, 0.15);
-            --progress-bg: rgba(0, 0, 0, 0.2);
-            --modal-bg: rgba(43, 43, 64, 0.75); /* More transparent for glass effect */
-        }
-        /* --- END THEMES --- */
 
         body {
-            background-color: var(--bg-color);
             font-family: 'Poppins', sans-serif;
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: var(--bs-body-bg-dark);
+            color: var(--text-color-dark);
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        .summary-section, .route-column-wrapper, .parking-card {
-            background: var(--card-bg-color);
-            border: 1px solid var(--card-border-color);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        [data-bs-theme="light"] body {
+            background-color: var(--bs-body-bg-light);
+            color: var(--text-color-light);
+        }
+        
+        .card {
+            background-color: var(--card-bg-dark);
+            border: 1px solid var(--border-color-dark);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        
+        [data-bs-theme="light"] .card {
+            background-color: var(--card-bg-light);
+            border: 1px solid var(--border-color-light);
         }
 
-        [data-bs-theme="dark"] .summary-section,
-        [data-bs-theme="dark"] .route-column-wrapper,
-        [data-bs-theme="dark"] .parking-card {
-            backdrop-filter: blur(10px) saturate(150%);
-            -webkit-backdrop-filter: blur(10px) saturate(150%);
+        .card-title {
+            font-weight: 600;
         }
 
-        .border-bottom-dynamic { border-bottom: 1px solid var(--header-border-color) !important; }
-        .text-secondary-dynamic { color: var(--text-secondary-color) !important; }
-        .reserved-spacer { height: 10px; background-color: var(--card-bg-color); border-radius: 5px; }
-        .chart-container { position: relative; height: 300px; width: 100%; }
-        .route-column-wrapper { padding: 20px; height: 100%; display: flex; flex-direction: column; }
-        .route-column-title { font-size: 1.4rem; font-weight: 700; text-align: center; border-bottom: 2px solid; padding-bottom: 10px; margin-bottom: 1rem; }
-
-        .thoothukudi-title { border-color: #1DE9B6; }
-        .tirunelveli-title { border-color: #FF9100; }
-        .nagercoil-title { border-color: #1E88E5; }
-
-        .route-column-wrapper:has(#thoothukudi-lots-container) { box-shadow: var(--thoothukudi-glow); }
-        .route-column-wrapper:has(#tirunelveli-lots-container) { box-shadow: var(--tirunelveli-glow); }
-        .route-column-wrapper:has(#nagercoil-lots-container) { box-shadow: var(--nagercoil-glow); }
-
-        .parking-card:hover { transform: translateY(-4px); }
-        .parking-name { font-size: 0.95rem; }
-
-        .availability-status { font-weight: bold; font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 1rem; border: 1px solid; white-space: nowrap; }
-        .status-available { color: #27ae60; border-color: #2ecc71; background-color: rgba(46, 204, 113, 0.15); }
-        .status-unavailable { color: #c0392b; border-color: #e74c3c; background-color: rgba(231, 76, 60, 0.15); }
-
-        .progress { font-size: 0.8rem; font-weight: 600; border-radius: 0.5rem; background-color: var(--progress-bg); }
-        .progress-bar.bg-success { background-color: #2ecc71 !important; }
-        .progress-bar.bg-warning { background-color: #f39c12 !important; }
-        .progress-bar.bg-danger { background-color: #e74c3c !important; }
-
-        .modal-content { background-color: var(--modal-bg); border: 1px solid var(--card-border-color); }
-        [data-bs-theme="dark"] .modal-content {
-            backdrop-filter: blur(10px) saturate(150%);
-            -webkit-backdrop-filter: blur(10px) saturate(150%);
+        .card-text {
+            font-size: 0.9rem;
+            color: #b0bec5;
         }
-        .theme-toggle-container .form-check-input { width: 3.5em; height: 1.8em; cursor: pointer; }
+        
+        [data-bs-theme="light"] .card-text {
+            color: #455a64;
+        }
+        
+        /* ===================================================================== */
+        /* === CHANGE: நீங்கள் கேட்டபடி ஆக்யூபென்சி டெக்ஸ்டை ஆரஞ்சு நிறமாக்க === */
+        .occupancy-text {
+            color: #F57C00 !important; /* ஒரு அருமையான ஆரஞ்சு நிறம் */
+            font-weight: 600; /* டெக்ஸ்டை தடிமனாக்க */
+        }
+        /* ===================================================================== */
+        
+        .status-available { color: #66BB6A; font-weight: bold; }
+        .status-closed { color: #EF5350; font-weight: bold; }
+        .status-filling { color: #FFA726; font-weight: bold; }
+        .status-full { color: #d32f2f; font-weight: bold; }
+
+        .route-container {
+            border: 1px solid;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-image-slice: 1;
+        }
+
+        #thoothukudi-route { border-image-source: linear-gradient(to right, #1DE9B6, #00BFA5); }
+        #tirunelveli-route { border-image-source: linear-gradient(to right, #FFAB00, #FF9100); }
+        #nagercoil-route { border-image-source: linear-gradient(to right, #2979FF, #448AFF); }
+        
+        .lot-card { cursor: pointer; }
+        .lot-card:hover { transform: translateY(-5px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: all 0.2s ease-in-out; }
     </style>
 </head>
 <body>
-    <div class="container-fluid mt-3">
-        <!-- HEADER -->
-        <header class="mb-4 pb-3 border-bottom-dynamic mx-3">
-            <div class="row align-items-center text-center text-lg-start">
-                <!-- Left Column -->
-                <div class="col-lg-4">
-                    <div class="d-flex align-items-center justify-content-center justify-content-lg-start">
-                        <img src="police_logo.png" alt="Police Logo" style="height: 75px;" class="me-3">
-                        <div>
-                            <h4 class="fw-bold mb-1">Tiruchendur Kumbabishegam 2025</h4>
-                            <p class="small text-secondary-dynamic mb-0">Parking Availability Dashboard | Last Updated: <span id="last-updated"></span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Center Column -->
-                <div class="col-lg-4 my-3 my-lg-0">
-                    <h1 class="h2 fw-bold">Thoothukudi District Police</h1>
-                </div>
-
-                <!-- Right Column -->
-                <div class="col-lg-4">
-                    <div class="d-flex align-items-center justify-content-center justify-content-lg-end">
-                        <div class="theme-toggle-container d-flex align-items-center me-3">
-                            <i class="bi bi-sun-fill"></i>
-                            <div class="form-check form-switch mx-2">
-                                <input class="form-check-input" type="checkbox" role="switch" id="theme-toggle-switch">
-                            </div>
-                            <i class="bi bi-moon-stars-fill"></i>
-                        </div>
-                        <div>
-                            <a href="POLICE_KUMBABI_TRAFFIC_ROUTE_MAP_2025.jpg" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info"><i class="bi bi-sign-turn-right-fill me-1"></i>Traffic Plan</a>
-                            <a href="#" class="btn btn-sm btn-outline-success ms-2"><i class="bi bi-geo-alt-fill me-1"></i>All Maps</a>
-                        </div>
-                    </div>
+    <header class="container py-3 mb-4 border-bottom">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <img src="{{ url_for('static', filename='police_logo.png') }}" alt="Police Logo" style="height: 50px;" class="me-3">
+                <div>
+                    <h4 class="mb-0">Parking Availability Dashboard</h4>
+                    <small id="last-updated" class="text-muted">Last Updated: --</small>
                 </div>
             </div>
-        </header>
-
-        <!-- OVERALL SUMMARY & RESERVED SECTION -->
-        <div class="row g-4 mx-2 mb-4">
-            <div class="col-lg-6">
-                <div class="summary-section p-3 h-100">
-                    <h4 class="fw-bold">Total Parking availability in Tiruchendur</h4>
-                    <div class="progress mt-3" style="height: 30px;">
-                        <div id="overall-progress-bar" class="progress-bar fw-bold fs-6" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-                    </div>
-                    <p class="mt-2 text-secondary-dynamic fw-bold fs-5 text-center">Total Occupied: <span id="total-vehicles">0</span> / <span id="total-capacity">0</span></p>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                 <div class="summary-section p-3 h-100 d-flex align-items-center justify-content-center">
-                    <p class="text-secondary-dynamic fst-italic">Reserved Space</p>
-                 </div>
-            </div>
-            <div class="col-lg-2">
-                <div class="summary-section p-3 h-100">
-                    <h4 class="fw-bold">Two Wheeler</h4>
-                    <div class="d-flex align-items-center justify-content-center h-100">
-                        <p class="text-secondary-dynamic">Reserved</p>
-                    </div>
-                </div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="theme-toggle">
+                <label class="form-check-label" for="theme-toggle"><i class="bi bi-moon-stars-fill"></i> / <i class="bi bi-sun-fill"></i></label>
             </div>
         </div>
-        
-        <div class="reserved-spacer mx-3 mb-4"></div>
+    </header>
 
-        <!-- PARKING LOT SECTIONS -->
-        <div class="row g-4 mx-2">
-            <div class="col-lg-4 d-flex flex-column">
-                <div class="route-column-wrapper">
-                    <h2 class="route-column-title thoothukudi-title">Thoothukudi Route</h2>
-                    <div class="route-progress-section mb-3">
-                        <div class="progress" style="height: 20px;"><div id="thoothukudi-route-progress" class="progress-bar fw-bold" role="progressbar"></div></div>
-                        <div class="text-center text-secondary-dynamic small mt-1"><span id="thoothukudi-route-count">0 / 0</span></div>
-                    </div>
-                    <div id="thoothukudi-lots-container" class="row g-3"></div>
+    <main class="container">
+        <!-- Parking Cards Section -->
+        <div id="parking-cards-container" class="mb-5">
+            <div id="loading-spinner" class="d-flex justify-content-center my-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
-            <div class="col-lg-4 d-flex flex-column">
-                <div class="route-column-wrapper">
-                    <h2 class="route-column-title tirunelveli-title">Tirunelveli Route</h2>
-                    <div class="route-progress-section mb-3">
-                        <div class="progress" style="height: 20px;"><div id="tirunelveli-route-progress" class="progress-bar fw-bold" role="progressbar"></div></div>
-                        <div class="text-center text-secondary-dynamic small mt-1"><span id="tirunelveli-route-count">0 / 0</span></div>
-                    </div>
-                    <div id="tirunelveli-lots-container" class="row g-3"></div>
-                </div>
-            </div>
-            <div class="col-lg-4 d-flex flex-column">
-                 <div class="route-column-wrapper">
-                    <h2 class="route-column-title nagercoil-title">Nagercoil Route</h2>
-                    <div class="route-progress-section mb-3">
-                        <div class="progress" style="height: 20px;"><div id="nagercoil-route-progress" class="progress-bar fw-bold" role="progressbar"></div></div>
-                        <div class="text-center text-secondary-dynamic small mt-1"><span id="nagercoil-route-count">0 / 0</span></div>
-                    </div>
-                    <div id="nagercoil-lots-container" class="row g-3"></div>
-                </div>
-            </div>
+            <!-- Dynamic content will be injected here -->
         </div>
-        
-        <div class="summary-section p-3 mt-4 mx-3">
-            <h4 class="fw-bold">Route-wise Vehicle Count (Last 24 Hours)</h4>
-            <div class="chart-container"><canvas id="overallHistoryChart"></canvas></div>
+    </main>
+
+    <!-- Modal for displaying graphs -->
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalLabel">Parking Lot History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="lotHistoryChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL -->
-    <div class="modal fade" id="lotHistoryModal" tabindex="-1" aria-labelledby="lotHistoryModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header"><h5 class="modal-title" id="lotHistoryModalLabel">Parking Lot History</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
-          <div class="modal-body">
-            <p class="text-secondary-dynamic text-center" id="modal-loading-text">Loading chart...</p>
-            <div style="height: 400px;"><canvas id="singleLotChart"></canvas></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function() {
-            let singleLotChart;
-            let overallHistoryChart;
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlElement = document.documentElement;
 
-            // --- THEME TOGGLE LOGIC ---
-            const getPreferredTheme = () => {
-                const storedTheme = localStorage.getItem('theme');
-                if (storedTheme) return storedTheme;
-                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            };
-
+            // Function to set theme
             const setTheme = (theme) => {
-                document.documentElement.setAttribute('data-bs-theme', theme);
+                htmlElement.setAttribute('data-bs-theme', theme);
                 localStorage.setItem('theme', theme);
-                $('#theme-toggle-switch').prop('checked', theme === 'dark');
-                // Re-render chart with new theme colors
-                if (overallHistoryChart) {
-                    fetchAndRenderOverallHistoryChart();
-                }
+                themeToggle.checked = theme === 'dark';
             };
 
-            setTheme(getPreferredTheme());
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
 
-            $('#theme-toggle-switch').on('change', function() {
-                setTheme(this.checked ? 'dark' : 'light');
+            // Toggle theme
+            themeToggle.addEventListener('change', () => {
+                const newTheme = themeToggle.checked ? 'dark' : 'light';
+                setTheme(newTheme);
             });
-            // --- END THEME LOGIC ---
+            
+            let lotHistoryChart;
 
+            function updateCards(data) {
+                const container = document.getElementById('parking-cards-container');
+                const lastUpdatedEl = document.getElementById('last-updated');
+                const loadingSpinner = document.getElementById('loading-spinner');
 
-            // --- CHART OPTIONS (DYNAMIC) ---
-            const getChartOptions = () => {
-                const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-                const textColor = isDarkMode ? '#e0e0e0' : '#333';
-                const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)';
+                if (loadingSpinner) {
+                    loadingSpinner.style.display = 'none';
+                }
                 
-                return {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { tooltip: { position: 'nearest' }, legend: { labels: { color: textColor, font: { weight: 'bold' } } } },
-                    scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Total Vehicle Count', color: textColor, font: { weight: 'bold' } }, ticks: { color: textColor }, grid: { color: gridColor } },
-                        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'MMM d, h:mm a', displayFormats: { hour: 'h a' } }, ticks: { color: textColor }, grid: { color: gridColor } }
-                    }
+                container.innerHTML = ''; // Clear previous cards
+                lastUpdatedEl.textContent = `Last Updated: ${new Date().toLocaleString()}`;
+
+                const routes = {
+                    'Thoothukudi': [],
+                    'Tirunelveli': [],
+                    'Nagercoil': []
                 };
-            };
 
-            const getSingleLotChartOptions = () => {
-                const baseOptions = getChartOptions();
-                baseOptions.scales.y.title.text = 'Occupancy (%)';
-                baseOptions.scales.y.max = 100;
-                baseOptions.scales.x.title = { display: true, text: 'Time', color: baseOptions.scales.x.ticks.color, font: { weight: 'bold' } };
-                return baseOptions;
-            }
-            // --- END CHART OPTIONS ---
+                data.forEach(lot => {
+                    if (routes[lot.Route_en]) {
+                        routes[lot.Route_en].push(lot);
+                    }
+                });
 
-            function createParkingCard(lot) {
-                const occupancyPercent = lot.Occupancy_Percent;
-                let progressBarColor = 'bg-success';
-                if (occupancyPercent > 85) progressBarColor = 'bg-danger';
-                else if (occupancyPercent > 50) progressBarColor = 'bg-warning';
+                for (const routeName in routes) {
+                    const lots = routes[routeName];
+                    if (lots.length > 0) {
+                        const routeId = routeName.toLowerCase().replace(' ', '-') + '-route';
+                        const routeContainer = document.createElement('div');
+                        routeContainer.className = 'route-container mb-4';
+                        routeContainer.id = routeId;
+                        
+                        let routeCardsHtml = `<h3 class="mb-4">${routeName} Route</h3><div class="row">`;
+                        
+                        lots.forEach(lot => {
+                            let statusText, statusClass;
+                            if (!lot.IsParkingAvailable) {
+                                statusText = 'Closed';
+                                statusClass = 'status-closed';
+                            } else if (lot.Occupancy_Percent >= 95) {
+                                statusText = 'Full';
+                                statusClass = 'status-full';
+                            } else if (lot.Occupancy_Percent > 75) {
+                                statusText = 'Filling Fast';
+                                statusClass = 'status-filling';
+                            } else {
+                                statusText = 'Available';
+                                statusClass = 'status-available';
+                            }
+                            
+                            const cardHtml = `
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card h-100 shadow-sm lot-card" data-id="${lot.ParkingLotID}">
+                                        <div class="card-body d-flex flex-column">
+                                            <h5 class="card-title">${lot.Parking_name_en}</h5>
+                                            
+                                            <!-- ======================================================================= -->
+                                            <!-- === CHANGE: Occupancy டெக்ஸ்டிற்கு ஆரஞ்சு நிற கிளாஸ் சேர்க்கப்பட்டது === -->
+                                            <p class="card-text occupancy-text">
+                                                Occupancy: ${lot.Current_Vehicle} / ${lot.TotalCapacity} (${Math.round(lot.Occupancy_Percent)}%)
+                                            </p>
+                                            <!-- ======================================================================= -->
+
+                                            <p class="card-text">Status: <span class="${statusClass}">${statusText}</span></p>
+                                            <div class="mt-auto pt-2">
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar" role="progressbar" style="width: ${lot.Occupancy_Percent}%;" aria-valuenow="${lot.Occupancy_Percent}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            routeCardsHtml += cardHtml;
+                        });
+
+                        routeCardsHtml += `</div>`;
+                        routeContainer.innerHTML = routeCardsHtml;
+                        container.appendChild(routeContainer);
+                    }
+                }
                 
-                const statusText = lot.IsParkingAvailable ? 'Available' : 'Closed';
-                const statusClass = lot.IsParkingAvailable ? 'status-available' : 'status-unavailable';
-                const btnClass = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'btn-outline-light' : 'btn-outline-secondary';
-
-                const buttonGroup = `
-                    <div class="d-flex align-items-center">
-                        <div class="btn-group" role="group">
-                            <a href="${lot.Location_Link}" target="_blank" class="btn btn-sm ${btnClass}" title="Location"><i class="bi bi-geo-alt"></i></a>
-                            <a href="${lot.Photos_Link}" target="_blank" class="btn btn-sm ${btnClass}" title="Photos"><i class="bi bi-camera"></i></a>
-                            <button class="btn btn-sm ${btnClass} view-history-btn" data-bs-toggle="modal" data-bs-target="#lotHistoryModal" title="View History" data-parking-id="${lot.ParkingLotID}"><i class="bi bi-clock-history"></i></button>
-                        </div>
-                    </div>`;
-
-                return `
-                    <div class="col-md-6">
-                        <div class="card parking-card h-100">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="fw-bold parking-name flex-grow-1 me-2">${lot.Parking_name_en}</span>
-                                    <span class="availability-status ${statusClass}">${statusText}</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="card-title text-secondary-dynamic mb-1">Occupancy: ${lot.Current_Vehicle}/${lot.TotalCapacity}</h6>
-                                    ${buttonGroup}
-                                </div>
-                                <div class="progress mt-2" role="progressbar" style="height: 18px;">
-                                    <div class="progress-bar ${progressBarColor} fw-bold" style="width: ${occupancyPercent}%;">${Math.round(occupancyPercent)}%</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+                // Add event listeners to new cards
+                document.querySelectorAll('.lot-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const lotId = this.dataset.id;
+                        fetchLotHistory(lotId);
+                    });
+                });
             }
 
-            function updateRouteProgressBar(routeName, current, total) {
-                const percent = total > 0 ? (current / total) * 100 : 0;
-                let progressBarColor = 'bg-success';
-                if (percent > 85) progressBarColor = 'bg-danger';
-                else if (percent > 50) progressBarColor = 'bg-warning';
-                $(`#${routeName.toLowerCase()}-route-progress`).css('width', percent + '%').text(Math.round(percent) + '%').removeClass('bg-success bg-warning bg-danger').addClass(progressBarColor);
-                $(`#${routeName.toLowerCase()}-route-count`).text(`${current} / ${total}`);
+            async function fetchData() {
+                try {
+                    const response = await fetch('/api/parking-data');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const result = await response.json();
+                    updateCards(result.data);
+                } catch (error) {
+                    console.error('Error fetching parking data:', error);
+                    document.getElementById('parking-cards-container').innerHTML = 
+                        '<div class="alert alert-danger">Could not load parking data. Please try again later.</div>';
+                }
             }
 
-            function fetchAndRenderData() {
-                $.getJSON('/api/parking-data', function(response) {
-                    const lots = response.data;
-                    $('#last-updated').text(new Date(response.last_updated).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }));
+            async function fetchLotHistory(lotId) {
+                try {
+                    const response = await fetch(`/api/parking-lot-history?id=${lotId}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const result = await response.json();
                     
-                    let totalCurrentVehicles = 0, totalOverallCapacity = 0;
-                    const routeStats = { 'Thoothukudi': { current: 0, total: 0 }, 'Tirunelveli': { current: 0, total: 0 }, 'Nagercoil': { current: 0, total: 0 } };
+                    const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+                    document.getElementById('historyModalLabel').textContent = `History for ${result.lotName}`;
 
-                    lots.forEach(lot => {
-                        totalCurrentVehicles += lot.Current_Vehicle;
-                        totalOverallCapacity += lot.TotalCapacity;
-                        if (routeStats[lot.Route_en]) {
-                            routeStats[lot.Route_en].current += lot.Current_Vehicle;
-                            routeStats[lot.Route_en].total += lot.TotalCapacity;
+                    const ctx = document.getElementById('lotHistoryChart').getContext('2d');
+                    if(lotHistoryChart) {
+                        lotHistoryChart.destroy();
+                    }
+                    lotHistoryChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            datasets: result.datasets
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    type: 'time',
+                                    time: {
+                                        unit: 'hour',
+                                        tooltipFormat: 'MMM d, h:mm a'
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Time'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Occupancy (%)'
+                                    }
+                                }
+                            }
                         }
                     });
+                    
+                    modal.show();
 
-                    const overallOccupancyPercent = totalOverallCapacity > 0 ? (totalCurrentVehicles / totalOverallCapacity) * 100 : 0;
-                    $('#overall-progress-bar').css('width', overallOccupancyPercent + '%').text(Math.round(overallOccupancyPercent) + '%');
-                    $('#total-vehicles').text(totalCurrentVehicles.toLocaleString());
-                    $('#total-capacity').text(totalOverallCapacity.toLocaleString());
-
-                    for (const routeName in routeStats) {
-                        updateRouteProgressBar(routeName, routeStats[routeName].current, routeStats[routeName].total);
-                    }
-
-                    const thoothukudiLots = lots.filter(lot => lot.Route_en === 'Thoothukudi').sort((a, b) => b.Occupancy_Percent - a.Occupancy_Percent);
-                    const tirunelveliLots = lots.filter(lot => lot.Route_en === 'Tirunelveli').sort((a, b) => b.Occupancy_Percent - a.Occupancy_Percent);
-                    const nagercoilLots = lots.filter(lot => lot.Route_en === 'Nagercoil').sort((a, b) => b.Occupancy_Percent - a.Occupancy_Percent);
-
-                    $('#thoothukudi-lots-container').html(thoothukudiLots.map(createParkingCard).join(''));
-                    $('#tirunelveli-lots-container').html(tirunelveliLots.map(createParkingCard).join(''));
-                    $('#nagercoil-lots-container').html(nagercoilLots.map(createParkingCard).join(''));
-                });
+                } catch (error) {
+                    console.error('Error fetching lot history:', error);
+                }
             }
-
-            function fetchAndRenderOverallHistoryChart() {
-                $.getJSON('/api/overall-history', function(data) {
-                    if (overallHistoryChart) overallHistoryChart.destroy();
-                    overallHistoryChart = new Chart(document.getElementById('overallHistoryChart').getContext('2d'), {
-                        type: 'line',
-                        data: { datasets: data.datasets },
-                        options: getChartOptions()
-                    });
-                });
-            }
-
-            $('#lotHistoryModal').on('show.bs.modal', function(event) {
-                const parkingLotID = event.relatedTarget.getAttribute('data-parking-id');
-                $('#modal-loading-text').show();
-                $('#singleLotChart').hide();
-                if (singleLotChart) singleLotChart.destroy();
-
-                $.getJSON(`/api/parking-lot-history?id=${parkingLotID}`, function(data) {
-                    $('#lotHistoryModalLabel').text(`Last 24-Hour History for ${data.lotName}`);
-                    $('#modal-loading-text').hide();
-                    $('#singleLotChart').show();
-                    singleLotChart = new Chart(document.getElementById('singleLotChart').getContext('2d'), {
-                        type: 'line',
-                        data: { datasets: data.datasets },
-                        options: getSingleLotChartOptions()
-                    });
-                }).fail(function() { $('#lotHistoryModalLabel').text('Error'); $('#modal-loading-text').text('Could not load historical data.'); });
-            });
-
-            fetchAndRenderData();
-            fetchAndRenderOverallHistoryChart();
             
-            setInterval(fetchAndRenderData, 60 * 1000);
-            setInterval(fetchAndRenderOverallHistoryChart, 5 * 60 * 1000);
+            // Initial data fetch and set interval for updates
+            fetchData();
+            setInterval(fetchData, 60000); // 1 நிமிடத்திற்கு ஒரு முறை புதுப்பிக்கவும்
         });
     </script>
 </body>
